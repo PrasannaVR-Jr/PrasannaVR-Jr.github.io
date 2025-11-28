@@ -1,18 +1,43 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Click Counter</title>
-    <link rel="stylesheet" href="style.css" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Juiced Click Counter</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-    <div class="container">
-        <h1>Click Counter</h1>
-        <p id="count">0</p>
-        <button id="btn">Click Me</button>
+  <main class="wrap">
+    <h1>Juiced Click Counter</h1>
+
+    <div class="hud">
+      <div class="panel">
+        <div class="label">Time</div>
+        <div id="timer">10.00</div>
+      </div>
+
+      <div class="panel">
+        <div class="label">CPS (live)</div>
+        <div id="liveCPS">0.00</div>
+      </div>
     </div>
 
-    <script src="script.js"></script>
+    <div class="center">
+      <p id="count" class="count">0</p>
+
+      <button id="btn" class="big-button" aria-label="Click me">
+        <span id="btnText">Click Me</span>
+      </button>
+    </div>
+
+    <div id="result" class="result hidden">
+      <p id="finalText"></p>
+      <button id="restart" class="small-button">Restart</button>
+    </div>
+
+    <p class="hint">Start clicking to begin the 10-second run. Try to maximize CPS!</p>
+  </main>
+
+  <script src="script.js"></script>
 </body>
 </html>
