@@ -1,0 +1,29 @@
+{
+    "list": [
+        { 
+            "title": "Ancient Action", 
+            "link": "https://peacist.itch.io/ancient-action",
+            "description": "A fast-paced 2D platformer, combat prototype, set in an ancient arena."
+        },
+        { 
+            "title": "Open World Multiplayer TPS", 
+            "link": "https://peacist.itch.io/open-world-3d-multiplayer",
+            "description": "A 3D multiplayer TPS demo using Photon SDK."
+        },
+        { 
+            "title": "Loop Planet", 
+            "link": "https://peacist.itch.io/loop-planet",
+            "description": "A planetary gravity experiment where the player loops around worlds. Made in GMTK 2025 jam"
+        },
+        { 
+            "title": "Puffy Puzzle", 
+            "link": "https://peacist.itch.io/puff-up",
+            "description": "A physics-based puzzle game involving pufferfish + shock wave. Made in TriJam - A 3 day game jam"
+        },
+        { 
+            "title": "Brain Calculator", 
+            "link": "https://peacist.itch.io/brain-calculator",
+            "description": "A rapid-fire math logic game designed to test calculation speed."
+        }
+    ]
+}

@@ -1,0 +1,22 @@
+{
+    "list": [
+        {
+            "title": "Games for Cats",
+            "description": "An interactive collection of sensory games designed for cats, featuring bug-smashing, movement tracking, and playful animations to keep pets engaged.",
+            "image": "assets/images/cat_games.jpg",
+            "link": "https://apps.apple.com/us/app/cat-games-for-cats-bug-smash/id6743428613"
+        },
+        {
+            "title": "Baby Phone Games",
+            "description": "A colorful and educational musical game for kids. Features piano instruments, nursery rhymes, and interactive sound experiences.",
+            "image": "assets/images/baby_phone.png",
+            "link": "https://apps.apple.com/us/app/baby-phone-games-piano-kids-2/id1632900958"
+        },
+        {
+            "title": "Sensispark Games",
+            "description": "A satisfying collection of anti-stress and sensory fidget toys. Includes pop-its, slimes, and physics-based interactions for relaxation.",
+            "image": "assets/images/sensispark.jpg",
+            "link": "https://play.google.com/store/apps/details?id=com.iz.antistress.relaxing.satisfying.sensory.magic.games&hl=en_IN"
+        }
+    ]
+}

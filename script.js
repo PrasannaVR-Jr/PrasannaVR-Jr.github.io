@@ -1,149 +1,199 @@
-// Juiced Click Counter
-const btn = document.getElementById('btn');
-const countEl = document.getElementById('count');
-const timerEl = document.getElementById('timer');
-const liveCpsEl = document.getElementById('liveCPS');
-const resultEl = document.getElementById('result');
-const finalText = document.getElementById('finalText');
-const restartBtn = document.getElementById('restart');
-
-let totalClicks = 0;
-let running = false;
-let startTime = null;
-let endTime = null;
-let runDuration = 10.0; // seconds
-let timerInterval = null;
-
-// store timestamps (ms) of clicks to compute "live cps" based on last 1s
-let clickTimes = [];
-
-// A reasonable "visual max CPS" for mapping color intensity (tweakable)
-const visualMaxCps = 20; // at this CPS the button becomes fully red
-
-// Utility: compute CPS as number of clicks in last 1000ms
-function computeLiveCps() {
-  const now = performance.now();
-  // remove old timestamps older than 1100ms for safety
-  while (clickTimes.length && (now - clickTimes[0]) > 1100) clickTimes.shift();
-  return clickTimes.length;
+// In script.js
+async function loadJSON(path) {
+    // Append a unique timestamp (t) to the path to force the browser 
+    // to request a fresh copy of the JSON data every time.
+    const uniquePath = path + "?t=" + new Date().getTime(); 
+    
+    const res = await fetch(uniquePath);
+    return await res.json();
 }
 
-// Map cps -> hue (120 = green, 0 = red). Clamped.
-function colorForCps(cps) {
-  const t = Math.min(cps / visualMaxCps, 1.0); // 0..1
-  const hue = Math.round(120 - 120 * t); // 120->0
-  return `hsl(${hue} 80% 45%)`;
-}
+/* ---------------------------------------------------------
+   FEATURED PROJECTS — ROW HEIGHT MATCHING
+--------------------------------------------------------- */
 
-// Update timer display
-function updateTimerDisplay(remaining) {
-  timerEl.textContent = remaining.toFixed(2);
-}
+// Render Featured Projects as top-image cards (2 per row)
+function renderFeaturedProjects(projects) {
+    let projHTML = `
+        <h3>Featured Projects</h3>
+        <div class="projects-grid">
+    `;
 
-// Start the 10s run
-function startRun() {
-  running = true;
-  totalClicks = 0;
-  startTime = performance.now();
-  endTime = startTime + runDuration * 1000;
-  resultEl.classList.add('hidden');
+    projects.list.forEach(p => {
+        projHTML += `
+            <div class="project-card" onclick="window.open('${p.link}', '_blank')">
+                <img src="${p.image}" alt="${p.title}">
+                <div class="project-info">
+                    <h4>${p.title}</h4>
+                    <p>${p.description || ""}</p>
+                </div>
+            </div>
+        `;
+    });
 
-  // update timer frequently for smoothness
-  timerInterval = setInterval(() => {
-    const now = performance.now();
-    const rem = Math.max(0, (endTime - now) / 1000);
-    updateTimerDisplay(rem);
-    // keep updating live cps display even if not clicked
-    liveCpsEl.textContent = computeLiveCps().toFixed(2);
-
-    if (now >= endTime) {
-      finishRun();
+    // Add empty placeholder if odd number
+    if (projects.list.length % 2 !== 0) {
+        projHTML += `<div class="project-card empty"></div>`;
     }
-  }, 50);
+
+    projHTML += `</div>`;
+    document.getElementById("featuredProjectsSection").innerHTML = projHTML;
+
+    // Equalize card heights within each row
+    equalizeProjectCardRows();
 }
 
-// End the run and show result
-function finishRun() {
-  if (!running) return;
-  running = false;
-  clearInterval(timerInterval);
-  timerInterval = null;
+// Equalize row heights
+function equalizeProjectCardRows() {
+    const cards = Array.from(document.querySelectorAll('.projects-grid .project-card'));
 
-  const elapsed = (Math.min(performance.now(), endTime) - startTime) / 1000;
-  const cps = elapsed > 0 ? (totalClicks / elapsed) : 0;
+    cards.forEach(c => c.style.height = '');
 
-  // show final text and restart
-  finalText.innerHTML = `<strong>${totalClicks}</strong> clicks — <strong>${cps.toFixed(2)}</strong> CPS`;
-  resultEl.classList.remove('hidden');
+    const rows = {};
+    cards.forEach(card => {
+        if (card.classList.contains('empty')) return;
+        const top = Math.round(card.getBoundingClientRect().top);
 
-  // freeze timer at 0.00
-  updateTimerDisplay(0.00);
-  liveCpsEl.textContent = '0.00';
-  // set button back to neutral color
-  btn.style.background = '';
+        if (!rows[top]) rows[top] = [];
+        rows[top].push(card);
+    });
+
+    Object.values(rows).forEach(rowCards => {
+        let maxH = 0;
+
+        rowCards.forEach(c => {
+            const h = Math.round(c.getBoundingClientRect().height);
+            if (h > maxH) maxH = h;
+        });
+
+        rowCards.forEach(c => {
+            c.style.height = maxH + 'px';
+        });
+    });
 }
 
-// Reset everything to start state
-function resetAll() {
-  totalClicks = 0;
-  clickTimes = [];
-  running = false;
-  startTime = null;
-  endTime = null;
-  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
-  countEl.textContent = '0';
-  updateTimerDisplay(runDuration);
-  liveCpsEl.textContent = '0.00';
-  resultEl.classList.add('hidden');
-  // reset button color
-  btn.style.background = '';
+// Debounced resize re-equalization
+let _eqTimeout = null;
+function onResizeDebounced() {
+    if (_eqTimeout) clearTimeout(_eqTimeout);
+    _eqTimeout = setTimeout(() => {
+        equalizeProjectCardRows();
+    }, 120);
 }
 
-// handle a click
-function handleClick() {
-  const now = performance.now();
-  // start run on first click
-  if (!running) startRun();
+window.addEventListener('resize', onResizeDebounced);
 
-  totalClicks++;
-  countEl.textContent = totalClicks;
 
-  // push timestamp for live cps
-  clickTimes.push(now);
+/* ---------------------------------------------------------
+   MAIN BUILD FUNCTION
+--------------------------------------------------------- */
 
-  // pop animation on button
-  btn.classList.remove('pop');
-  // force reflow to restart animation
-  // eslint-disable-next-line no-unused-expressions
-  btn.offsetWidth;
-  btn.classList.add('pop');
+/* ---------------------------------------------------------
+   MAIN BUILD FUNCTION
+--------------------------------------------------------- */
 
-  // shake the number
-  countEl.classList.remove('shake');
-  // force reflow
-  // eslint-disable-next-line no-unused-expressions
-  countEl.offsetWidth;
-  countEl.classList.add('shake');
+async function buildSite() {
 
-  // update live cps and reflect color
-  const liveCps = computeLiveCps();
-  liveCpsEl.textContent = liveCps.toFixed(2);
+    const hero       = await loadJSON("data/hero.json");
+    const background = await loadJSON("data/background.json");
+    const skills     = await loadJSON("data/skills.json");
+    const projects   = await loadJSON("data/projects.json");
+    const jams       = await loadJSON("data/gamejam.json");
+    const journey    = await loadJSON("data/journey.json");
+    const footer     = await loadJSON("data/footer.json");
 
-  // map to color and apply as background of button
-  btn.style.background = `linear-gradient(180deg, ${colorForCps(liveCps)}, ${shade(colorForCps(liveCps), -10)})`;
+    /* -----------------------------
+       HERO
+    ------------------------------ */
+    document.getElementById("heroSection").innerHTML = `
+        <div class="hero-photo">
+            <img src="https://media.licdn.com/dms/image/v2/D5603AQHBuP7sCVUKEQ/profile-displayphoto-shrink_200_200/profile-displayphoto-shrink_200_200/0/1687405584746?e=1766016000&v=beta&t=RAsNyOrey0tDl0QEPEpNXnwz6B6h9Yz55JTlzOYPVJA">
+        </div>
+        <div class="hero-text">
+            <h1>${hero.line1}</h1>
+            <h2>${hero.line2}</h2>
+            <p>${hero.line3}</p>
+        </div>
+    `;
+
+    /* -----------------------------
+       BACKGROUND
+    ------------------------------ */
+    document.getElementById("backgroundSection").innerHTML = `
+        <h3>Background</h3>
+        <p>${background.text}</p>
+    `;
+
+    /* -----------------------------
+       SKILLS
+    ------------------------------ */
+    document.getElementById("skillsSection").innerHTML = `
+        <h3>Skills</h3>
+        <div class="skill-grid">
+            <div><strong>Languages</strong><div class="skill-list">${skills.languages.map(l => `<span class="skill-item">${l}</span>`).join("")}</div></div>
+            <div><strong>Engines</strong><div class="skill-list">${skills.frameworks.map(f => `<span class="skill-item">${f}</span>`).join("")}</div></div>
+            <div><strong>Tools</strong><div class="skill-list">${skills.tools.map(t => `<span class="skill-item">${t}</span>`).join("")}</div></div>
+            <div><strong>Fields</strong><div class="skill-list">${skills.fields.map(f => `<span class="skill-item">${f}</span>`).join("")}</div></div>
+        </div>
+    `;
+
+    /* -----------------------------
+       FEATURED PROJECTS
+    ------------------------------ */
+    renderFeaturedProjects(projects);
+
+    /* -----------------------------
+       GAME JAMS (Updated with Description)
+    ------------------------------ */
+    let jamHTML = `<h3>Game Jam & Personal Projects</h3> <div class="jams-grid">`;
+    jams.list.forEach(j => {
+        jamHTML += `
+            <div class="jam-card" onclick="window.open('${j.link}', '_blank')">
+                <div class="jam-header">
+                    <h4>${j.title}</h4>
+                    <span class="arrow">↗</span>
+                </div>
+                <p>${j.description || ""}</p>
+            </div>
+        `;
+    });
+    jamHTML += `</div>`;
+    document.getElementById("gamejamSection").innerHTML = jamHTML;
+
+    /* -----------------------------
+       JOURNEY (Updated with Description)
+    ------------------------------ */
+    let journeyHTML = `<h3>Journey</h3> <div class="journey-grid">`;
+    journey.list.forEach(j => {
+        journeyHTML += `
+            <div class="journey-card">
+                <div class="journey-left">
+                    <h4>${j.years}</h4>
+                </div>
+                <div class="journey-right">
+                    <p class="company"><strong>${j.company}</strong></p>
+                    <p class="role">${j.role}</p>
+                    <p class="desc">${j.description || ""}</p>
+                </div>
+            </div>
+        `;
+    });
+    journeyHTML += `</div>`;
+    document.getElementById("journeySection").innerHTML = journeyHTML;
+
+    /* -----------------------------
+       FOOTER
+    ------------------------------ */
+    document.getElementById("footerSection").innerHTML = `
+      <div class="footer-icons">
+          <a href="${footer.github}" target="_blank"><img src="assets/icons/github_logo_128.png"></a>
+          <a href="${footer.linkedin}" target="_blank"><img src="assets/icons/linkedin_logo_128.png"></a>
+          <a href="mailto:${footer.email}"><img src="assets/icons/mail_logo_128.png"></a>
+      </div>
+    `;
 }
 
-// slight helper to darken/lighten HSL color string "hsl(h s% l%)" by adjusting lightness
-function shade(hslString, deltaLightness){
-  // naive parse
-  const match = /hsl\((\d+)\s+(\d+)%\s+(\d+)%\)/.exec(hslString);
-  if(!match) return hslString;
-  const h = match[1], s = match[2], l = Math.max(0, Math.min(100, Number(match[3]) + deltaLightness));
-  return `hsl(${h} ${s}% ${l}%)`;
-}
-
-btn.addEventListener('click', handleClick);
-restartBtn.addEventListener('click', resetAll);
-
-// init UI
-resetAll();
+/* ---------------------------------------------------------
+   RUN SITE BUILD
+--------------------------------------------------------- */
+buildSite();

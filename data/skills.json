@@ -1,0 +1,6 @@
+{
+    "languages": ["C#", "Python", "JavaScript", "HTML/CSS", "C++"],
+    "frameworks": ["Unity", "ReactJS"],
+    "tools": ["GitHub", "SVN", "Xcode", "Firebase", "Google Admob"],
+    "fields": ["Gameplay", "UI", "Math", "Scripting", "Prototyping"]
+}

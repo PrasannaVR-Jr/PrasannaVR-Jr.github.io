@@ -1,0 +1,16 @@
+{
+    "list": [
+        {
+            "years": "2024 — Present",
+            "company": "IDZ Digital Private Ltd. (Kidloland)",
+            "role": "Game Developer",
+            "description": "Developing polished gameplay mechanics and interactive systems for children's mobile games using Unity and C#."
+        },
+        {
+            "years": "2022 — 2023",
+            "company": "Image Creative Education",
+            "role": "Game Programmer Faculty",
+            "description": "Mentored students in game development fundamentals, covering Unity engine workflows, C# scripting, and logic building."
+        }
+    ]
+}
